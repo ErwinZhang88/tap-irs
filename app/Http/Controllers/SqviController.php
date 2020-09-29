@@ -96,7 +96,9 @@ class SqviController extends Controller
 		{
 			foreach( $datax as $k )
 			{
-				$dt[] = (array) $k;
+				$ar = (array) $k;
+				array_push($ar,'KG');
+				$dt[] = $ar;
 			}
 		}	
 		
