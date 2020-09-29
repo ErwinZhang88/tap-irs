@@ -13,9 +13,6 @@ use Illuminate\Support\Facades\Input;
 use App\Sqvi; //MODEL
 use Carbon\Carbon;
 
-//use Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Csv;
 
 class SqviController extends Controller
 {	
@@ -73,14 +70,6 @@ class SqviController extends Controller
 	}
 	public function cron()
 	{	
-		$spreadsheet = new Spreadsheet();
-		$sheet = $spreadsheet->getActiveSheet();		
-		$sheet->setCellValue('A1', 'PLNT');
-		$sheet->setCellValue('B1', 'BLOCK CODE');
-		$sheet->setCellValue('C1', 'CREATED ON');
-		$sheet->setCellValue('D1', 'QUANTITY');
-		$sheet->setCellValue('E1', 'BUN');
-		
 		$sql = "
 			SELECT werks AS plnt,
 				   sub_block_code AS block_code,
