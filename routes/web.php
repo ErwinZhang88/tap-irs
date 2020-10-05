@@ -33,6 +33,8 @@ Route::get('/crop_harvest/{comp_ba}', 'Crop_harvestController@cron')->name('crop
 Route::get('/crop_harvest_date/{ddmmyyyy}/{comp_ba}', 'Crop_harvest_dateController@index')->name('crop_harvest_date/{ddmmyyyy}/{comp_ba}');
 Route::get('/zpay_view_rawat/{comp_ba}', 'Zpay_view_rawatController@cron')->name('zpay_view_rawat/{comp_ba}');
 Route::get('/zpay_view_rawat_date/{ddmmyyyy}/{comp_ba}', 'Zpay_view_rawat_dateController@index')->name('zpay_view_rawat_date/{ddmmyyyy}/{comp_ba}');
+Route::get('/zpay_view_rawat/json/{comp_ba}', 'Zpay_view_rawatController@json')->name('zpay_view_rawat/json/{comp_ba}');
+Route::get('/employee/{comp_ba}', 'EmployeeController@cron')->name('employee/{comp_ba}');
 Route::get('/test', 'TestController@cron')->name('test');
 ### END IRS - tr_hv_production_daily (mb Juki - 180219)
 
