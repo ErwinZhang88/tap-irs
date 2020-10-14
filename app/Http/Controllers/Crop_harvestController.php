@@ -20,32 +20,53 @@ use PhpOffice\PhpSpreadsheet\Writer\Csv;
 class Crop_harvestController extends Controller
 {	
 	
-	public function index($comp_ba)
-	{	
-		//$spreadsheet = new Spreadsheet();
-		//$sheet = $spreadsheet->getActiveSheet();
-		//$sheet->setCellValue('A1', 'Hello World !');
-        //$filepath = "/etc/csv_share/TEST_".date("Ymd_Gis").".csv";
-		//$writer = new \PhpOffice\PhpSpreadsheet\Writer\Csv($spreadsheet);
-		//$writer->save($filepath);
+	public function json( $comp_ba )
+	{                  
+		ini_set('memory_limit', '-1');
+		ini_set('max_execution_time', -1);
+		$sql1 = "SELECT WERKS FROM tap_dw.TM_EST WHERE TO_CHAR(END_VALID, 'YYYYMMDD') = '99991231' AND WERKS LIKE '".$comp_ba."%'";
+		$data_ba = DB::connection('irs')->select($sql1);
+		if($data_ba)
+		{
+			foreach( $data_ba as $c ){
+				$ba = $c->werks;
+				$sql = "SELECT bcc.prfnr profile_name,
+							   bcc.bukrs \"company_code\",
+							   '''' || oph \"Oil Palm Harvesting Number\",
+							   TO_CHAR (TO_DATE (bcc.budat, 'yyyymmdd'), 'mm/dd/yyyy') \"Date\",
+							   empnr \"Employee Code\",
+							   bcc.estnr \"Estate\",
+							   bcc.divnr \"Afdeling\",
+							   bcc.block \"Block Code\",
+							   blk.block_name \"Old Block\",
+							   bcc.werks \"Plant\",
+							   bunch_total \"Total Bunch\",
+							   zbrondolan \"Brondolan Quantity\",
+							   bcc.paire \"NIK Gandeng\"
+						  FROM staging.zpay_bcc_sap@stg_link bcc
+							   LEFT JOIN tap_dw.tm_block blk
+								  ON bcc.werks = blk.werks AND bcc.divnr = blk.afd_code AND bcc.block = blk.block_code AND TRUNC (TO_DATE (bcc.budat, 'yyyymmdd')) BETWEEN blk.start_valid AND end_valid
+							   LEFT JOIN staging.zpay_profile@stg_link prof
+								  ON prof.prof_name = bcc.prfnr
+						 WHERE TRUNC (TO_DATE (bcc.budat, 'yyyymmdd')) BETWEEN CASE WHEN TO_CHAR (SYSDATE, 'dd') BETWEEN '01' AND '05' THEN TRUNC (ADD_MONTHS (SYSDATE, -1), 'mon') ELSE TRUNC (SYSDATE, 'mon') END
+																		   AND  CASE WHEN TO_CHAR (SYSDATE, 'dd') BETWEEN '01' AND '05' THEN LAST_DAY (TRUNC (ADD_MONTHS (SYSDATE, -1))) ELSE SYSDATE END
+							   /*TRUNC (ADD_MONTHS (SYSDATE, -1), 'mon')
+							   and LAST_DAY (TRUNC (ADD_MONTHS (SYSDATE,-1)))*/
+							   AND prof.plant_code = '".$ba."'";
+				$datax = DB::connection('irs')->select($sql);
+				// dd($datax);
+				if($datax)
+				{	
+					return response()->json( [
+									"message" => "crop_harvest",
+									"data" => $datax ] );
+				}
+			}
+		}
 	}
 	
 	public function cron($comp_ba)
 	{	
-		$spreadsheet = new Spreadsheet();
-		$sheet = $spreadsheet->getActiveSheet();
-		$sheet->setCellValue('A1', 'Company Code');
-		$sheet->setCellValue('B1', 'Oil Palm Harvesting Number');
-		$sheet->setCellValue('C1', 'Date');
-		$sheet->setCellValue('D1', 'Employee Code');
-		$sheet->setCellValue('E1', 'Estate');
-		$sheet->setCellValue('F1', 'Afdeling');
-		$sheet->setCellValue('G1', 'Block Code');
-		$sheet->setCellValue('H1', 'Old Block');
-		$sheet->setCellValue('I1', 'Plant');
-		$sheet->setCellValue('J1', 'Total Bunch');
-		$sheet->setCellValue('K1', 'Brondolan Quantity');
-        $sheet->setCellValue('L1', 'NIK Gandeng');
         // Updated: 31-9-2020
 		// $sheet->setCellValue('A1', 'Profile Name');
 		// $sheet->setCellValue('B1', 'Company Code');
@@ -77,16 +98,31 @@ class Crop_harvestController extends Controller
 		// $sheet->setCellValue('AB1', 'Time of change');
 		// $sheet->setCellValue('AC1', 'NIK Gandeng');
 		
-        //CONTENT DATA		
+        //CONTENT DATA	
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', -1);
-        $sql1 = "SELECT WERKS FROM TM_EST WHERE TO_CHAR(END_VALID, 'YYYYMMDD') = '99991231' AND WERKS LIKE '".$comp_ba."%'";
-        $data_ba = DB::connection('dev_tap_dw')->select($sql1);
+        $sql1 = "SELECT WERKS FROM tap_dw.TM_EST WHERE TO_CHAR(END_VALID, 'YYYYMMDD') = '99991231' AND WERKS LIKE '".$comp_ba."%'";
+        $data_ba = DB::connection('irs')->select($sql1);
         if($data_ba)
         {
             foreach( $data_ba as $c ){
+				$spreadsheet = new Spreadsheet();
+				$sheet = $spreadsheet->getActiveSheet();
+				$sheet->setCellValue('A1', 'Company Code');
+				$sheet->setCellValue('B1', 'Oil Palm Harvesting Number');
+				$sheet->setCellValue('C1', 'Date');
+				$sheet->setCellValue('D1', 'Employee Code');
+				$sheet->setCellValue('E1', 'Estate');
+				$sheet->setCellValue('F1', 'Afdeling');
+				$sheet->setCellValue('G1', 'Block Code');
+				$sheet->setCellValue('H1', 'Old Block');
+				$sheet->setCellValue('I1', 'Plant');
+				$sheet->setCellValue('J1', 'Total Bunch');
+				$sheet->setCellValue('K1', 'Brondolan Quantity');
+				$sheet->setCellValue('L1', 'NIK Gandeng');
                 $ba = $c->werks;
-                $sql = "  
+				echo $ba.'<br>';
+                $sql_old = "  
                     SELECT bcc.prfnr profile_name,
                         bcc.bukrs company_code,
                         '''' || oph oil_palm_harvesting_number,
@@ -155,7 +191,30 @@ class Crop_harvestController extends Controller
                                                                     /*TRUNC (ADD_MONTHS (SYSDATE, -1), 'mon')
                                                                     and LAST_DAY (TRUNC (ADD_MONTHS (SYSDATE,-1)))*/
                         AND prof.plant_code = '".$ba."'";
-                
+
+                $sql = "SELECT bcc.prfnr profile_name,
+							   bcc.bukrs company_code,
+							   '''' || oph oil_palm_harvesting_number,
+							   TO_CHAR (TO_DATE (bcc.budat, 'yyyymmdd'), 'mm/dd/yyyy') dt,
+							   empnr employee_code,
+							   bcc.estnr estate,
+							   bcc.divnr afdeling,
+							   bcc.block block_code,
+							   blk.block_name old_block,
+							   bcc.werks plant,
+							   bunch_total total_bunch,
+							   zbrondolan brondolan_quantity,
+							   bcc.paire nik_gandeng
+						  FROM staging.zpay_bcc_sap@stg_link bcc
+							   LEFT JOIN tap_dw.tm_block blk
+								  ON bcc.werks = blk.werks AND bcc.divnr = blk.afd_code AND bcc.block = blk.block_code AND TRUNC (TO_DATE (bcc.budat, 'yyyymmdd')) BETWEEN blk.start_valid AND end_valid
+							   LEFT JOIN staging.zpay_profile@stg_link prof
+								  ON prof.prof_name = bcc.prfnr
+						 WHERE TRUNC (TO_DATE (bcc.budat, 'yyyymmdd')) BETWEEN CASE WHEN TO_CHAR (SYSDATE, 'dd') BETWEEN '01' AND '05' THEN TRUNC (ADD_MONTHS (SYSDATE, -1), 'mon') ELSE TRUNC (SYSDATE, 'mon') END
+																		   AND  CASE WHEN TO_CHAR (SYSDATE, 'dd') BETWEEN '01' AND '05' THEN LAST_DAY (TRUNC (ADD_MONTHS (SYSDATE, -1))) ELSE SYSDATE END
+							   /*TRUNC (ADD_MONTHS (SYSDATE, -1), 'mon')
+							   and LAST_DAY (TRUNC (ADD_MONTHS (SYSDATE,-1)))*/
+							   AND prof.plant_code = '".$ba."'";
                 $datax = DB::connection('irs')->select($sql);
                 
                 if($datax)
@@ -210,13 +269,11 @@ class Crop_harvestController extends Controller
                         $i++;
                     }
                 }
-                
-                $pathfile = "/etc/csv_share/Crop_harvest_".$ba.".csv";
-                $writer = new \PhpOffice\PhpSpreadsheet\Writer\Csv($spreadsheet);
-                $writer->save($pathfile);
+				$pathfile = "/etc/csv_share/Crop_harvest_".$ba.".csv";
+				$writer = new \PhpOffice\PhpSpreadsheet\Writer\Csv($spreadsheet);
+				$writer->save($pathfile);
             }
         }
-		
 	}
 	
 }

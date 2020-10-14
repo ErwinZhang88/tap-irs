@@ -24,8 +24,8 @@ class Zpay_view_rawatController extends Controller
 	{                  
 		ini_set('memory_limit', '-1');
 		ini_set('max_execution_time', -1);
-		$sql1 = "SELECT WERKS FROM TM_EST WHERE TO_CHAR(END_VALID, 'YYYYMMDD') = '99991231' AND WERKS LIKE '".$comp_ba."%'";
-		$data_ba = DB::connection('dev_tap_dw')->select($sql1);
+		$sql1 = "SELECT WERKS FROM tap_dw.TM_EST WHERE TO_CHAR(END_VALID, 'YYYYMMDD') = '99991231' AND WERKS LIKE '".$comp_ba."%'";
+		$data_ba = DB::connection('irs')->select($sql1);
 		if($data_ba)
 		{
 			foreach( $data_ba as $c ){
@@ -127,33 +127,6 @@ class Zpay_view_rawatController extends Controller
 	
 	public function cron($comp_ba)
 	{	
-		$spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-		$sheet->setCellValue('A1','Company Code');
-		$sheet->setCellValue('B1','Date');
-		$sheet->setCellValue('C1','Employee Code');
-		$sheet->setCellValue('D1','Estate');
-		$sheet->setCellValue('E1','Activity');
-		$sheet->setCellValue('F1','Activity Name');
-		$sheet->setCellValue('G1','Block Code');
-		$sheet->setCellValue('H1','Old Block');
-		$sheet->setCellValue('I1','PER');
-		$sheet->setCellValue('J1','Activity UoM');
-		$sheet->setCellValue('K1','Vehicle License Number');
-		$sheet->setCellValue('L1','Asset');
-		$sheet->setCellValue('M1','Cost Center');
-		$sheet->setCellValue('N1','Premi Rate');
-		$sheet->setCellValue('O1','Material 1');
-		$sheet->setCellValue('P1','Quantity Material 1');
-		$sheet->setCellValue('Q1','UOM Material 1');
-		$sheet->setCellValue('R1','Material 2');
-		$sheet->setCellValue('S1','Quantity Material 2');
-		$sheet->setCellValue('T1','UOM Material 2');
-		$sheet->setCellValue('U1','Material 3');
-		$sheet->setCellValue('V1','Quantity Material 3');
-		$sheet->setCellValue('W1','UOM Material 3');
-		$sheet->setCellValue('X1','Plant');
-        $sheet->setCellValue('Y1','Reason');
         
         // update : 30-9-2020
 
@@ -215,18 +188,106 @@ class Zpay_view_rawatController extends Controller
 		// $sheet->setCellValue('BD1','Changed on');
 		// $sheet->setCellValue('BE1','Time of change');
 
+
+		// $sheet->setCellValue('A1','Profile Name');
+		// $sheet->setCellValue('B1','Company Code');
+		// $sheet->setCellValue('C1','Date');
+		// $sheet->setCellValue('D1','Employee Code');
+		// $sheet->setCellValue('E1','Employee Name');
+		// $sheet->setCellValue('F1','Job Code');
+		// $sheet->setCellValue('G1','Job Type');
+		// $sheet->setCellValue('H1','Estate');
+		// $sheet->setCellValue('I1','Afdeling');
+		// $sheet->setCellValue('J1','Phase');
+		// $sheet->setCellValue('K1','Item');
+		// $sheet->setCellValue('L1','Total Item');
+		// $sheet->setCellValue('M1','Activity');
+		// $sheet->setCellValue('N1','Activity Name');
+		// $sheet->setCellValue('O1','Block Code');
+		// $sheet->setCellValue('P1','Old Block');
+		// $sheet->setCellValue('Q1','Mandor Code');
+		// $sheet->setCellValue('R1','Helper1 Code');
+		// $sheet->setCellValue('S1','Helper1 Name');
+		// $sheet->setCellValue('T1','Helper2 Code');
+		// $sheet->setCellValue('U1','Helper2 Name');
+		// $sheet->setCellValue('V1','Helper3 Code');
+		// $sheet->setCellValue('W1','Helper3 Name');
+		// $sheet->setCellValue('X1','PER');
+		// $sheet->setCellValue('Y1','Customer');
+		// $sheet->setCellValue('Z1','Activity UoM');
+		// $sheet->setCellValue('AA1','Vehicle License Number');
+		// $sheet->setCellValue('AB1','Start Point of Vehicle Mileage');
+		// $sheet->setCellValue('AC1','End Point of Vehicle Mileage');
+		// $sheet->setCellValue('AD1','Vehicle Mileage');
+		// $sheet->setCellValue('AE1','UOM');
+		// $sheet->setCellValue('AF1','Asset');
+		// $sheet->setCellValue('AG1','Asset main no. text');
+		// $sheet->setCellValue('AH1','Cost Center');
+		// $sheet->setCellValue('AI1','Document Currency');
+		// $sheet->setCellValue('AJ1','Premi Rate');
+		// $sheet->setCellValue('AK1','Over Time');
+		// $sheet->setCellValue('AL1','Material 1');
+		// $sheet->setCellValue('AM1','Material Description 1');
+		// $sheet->setCellValue('AN1','Quantity Material 1');
+		// $sheet->setCellValue('AO1','UOM Material 1');
+		// $sheet->setCellValue('AP1','Material 2');
+		// $sheet->setCellValue('AQ1','Material Description 2');
+		// $sheet->setCellValue('AR1','Quantity Material 2');
+		// $sheet->setCellValue('AS1','UOM Material 2');
+		// $sheet->setCellValue('AT1','Material 3');
+		// $sheet->setCellValue('AU1','Material Description 3');
+		// $sheet->setCellValue('AV1','Quantity Material 3');
+		// $sheet->setCellValue('AW1','UOM Material 3');
+		// $sheet->setCellValue('AX1','Plant');
+		// $sheet->setCellValue('AY1','Reason');
+		// $sheet->setCellValue('AZ1','Created by');
+		// $sheet->setCellValue('BA1','Created on');
+		// $sheet->setCellValue('BB1','Time');
+		// $sheet->setCellValue('BC1','Changed by');
+		// $sheet->setCellValue('BD1','Changed on');
+		// $sheet->setCellValue('BE1','Time of change');
+
         //CONTENT DATA	
         
-                       
     ini_set('memory_limit', '-1');
     ini_set('max_execution_time', -1);
-    $sql1 = "SELECT WERKS FROM TM_EST WHERE TO_CHAR(END_VALID, 'YYYYMMDD') = '99991231' AND WERKS LIKE '".$comp_ba."%'";
-    $data_ba = DB::connection('dev_tap_dw')->select($sql1);
+    $sql1 = "SELECT WERKS FROM tap_dw.TM_EST WHERE TO_CHAR(END_VALID, 'YYYYMMDD') = '99991231' AND WERKS LIKE '".$comp_ba."%'";
+    $data_ba = DB::connection('irs')->select($sql1);
     if($data_ba)
-    {
+    {	
         foreach( $data_ba as $c ){
+			$spreadsheet = new Spreadsheet();
+			$sheet = $spreadsheet->getActiveSheet();
+			$sheet->setCellValue('A1','Company Code');
+			$sheet->setCellValue('B1','Date');
+			$sheet->setCellValue('C1','Employee Code');
+			$sheet->setCellValue('D1','Estate');
+			$sheet->setCellValue('E1','Activity');
+			$sheet->setCellValue('F1','Activity Name');
+			$sheet->setCellValue('G1','Block Code');
+			$sheet->setCellValue('H1','Old Block');
+			$sheet->setCellValue('I1','PER');
+			$sheet->setCellValue('J1','Activity UoM');
+			$sheet->setCellValue('K1','Vehicle License Number');
+			$sheet->setCellValue('L1','Asset');
+			$sheet->setCellValue('M1','Cost Center');
+			$sheet->setCellValue('N1','Premi Rate');
+			$sheet->setCellValue('O1','Material 1');
+			$sheet->setCellValue('P1','Quantity Material 1');
+			$sheet->setCellValue('Q1','UOM Material 1');
+			$sheet->setCellValue('R1','Material 2');
+			$sheet->setCellValue('S1','Quantity Material 2');
+			$sheet->setCellValue('T1','UOM Material 2');
+			$sheet->setCellValue('U1','Material 3');
+			$sheet->setCellValue('V1','Quantity Material 3');
+			$sheet->setCellValue('W1','UOM Material 3');
+			$sheet->setCellValue('X1','Plant');
+			$sheet->setCellValue('Y1','Reason');
             $ba = $c->werks;
-		        $sql = "SELECT prfnr profile_name,
+			echo $ba.'<br>';
+			flush();
+			ob_flush();
+			$sql = "SELECT prfnr profile_name,
 					   bukrs company_code,
 					   TO_CHAR (TO_DATE (budat, 'yyyymmdd'), 'mm/dd/yyyy') dt,
 					   empnr employee_code,
@@ -314,8 +375,7 @@ class Zpay_view_rawatController extends Controller
 		if($datax)
 		{	
 			$i = 2;
-			foreach( $datax as $k )
-			{
+			foreach( $datax as $k ) {
 				$sheet->setCellValue('A'.$i, $k->company_code);
 				$sheet->setCellValue('B'.$i, $k->dt);
 				$sheet->setCellValue('C'.$i, $k->employee_code);
@@ -407,7 +467,6 @@ class Zpay_view_rawatController extends Controller
             $writer = new \PhpOffice\PhpSpreadsheet\Writer\Csv($spreadsheet);
             $writer->save($pathfile);
             }
-            
         }
     }
 }

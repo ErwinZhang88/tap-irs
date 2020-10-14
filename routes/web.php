@@ -14,7 +14,6 @@ Route::get('/', function () {
 	return response()->json( [
 		"message" => "IRS"
 	] );
-	// phpinfo();
 });
 
 Route::get('/phpinfo', function () {
@@ -29,12 +28,15 @@ Route::get('/tr_hv_production_daily', 'Tr_hv_production_dailyController@index')-
 //Route::get('/tr_hv_production_daily_method2', 'Tr_hv_production_dailyController@method_2')->name('tr_hv_production_daily_method2/');
 Route::get('/sqvi', 'SqviController@cron')->name('sqvi');
 Route::get('/sqvi_date/{ddmmyyyy}', 'Sqvi_dateController@index')->name('sqvi_date/{ddmmyyyy}');
+Route::get('/sqvi/json', 'SqviController@json')->name('sqvi/json');
 Route::get('/crop_harvest/{comp_ba}', 'Crop_harvestController@cron')->name('crop_harvest/{comp_ba}');
 Route::get('/crop_harvest_date/{ddmmyyyy}/{comp_ba}', 'Crop_harvest_dateController@index')->name('crop_harvest_date/{ddmmyyyy}/{comp_ba}');
+Route::get('/crop_harvest/json/{comp_ba}', 'Crop_harvestController@json')->name('crop_harvest/json/{comp_ba}');
 Route::get('/zpay_view_rawat/{comp_ba}', 'Zpay_view_rawatController@cron')->name('zpay_view_rawat/{comp_ba}');
 Route::get('/zpay_view_rawat_date/{ddmmyyyy}/{comp_ba}', 'Zpay_view_rawat_dateController@index')->name('zpay_view_rawat_date/{ddmmyyyy}/{comp_ba}');
 Route::get('/zpay_view_rawat/json/{comp_ba}', 'Zpay_view_rawatController@json')->name('zpay_view_rawat/json/{comp_ba}');
 Route::get('/employee/{comp_ba}', 'EmployeeController@cron')->name('employee/{comp_ba}');
+Route::get('/employee/json/{comp_ba}', 'EmployeeController@json')->name('employee/json/{comp_ba}');
 Route::get('/test', 'TestController@cron')->name('test');
 ### END IRS - tr_hv_production_daily (mb Juki - 180219)
 

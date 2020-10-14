@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+ini_set('memory_limit', 0);
+ini_set('max_execution_time', 0);
+
 require '/var/www/html/tap-irs/vendor/autoload.php';
 
 use Illuminate\Http\Request;
@@ -16,9 +19,38 @@ use Carbon\Carbon;
 
 class SqviController extends Controller
 {	
-    public function index()
-	{
-	
+    public function json()
+	{                  
+		ini_set('memory_limit', '-1');
+		ini_set('max_execution_time', -1);
+		
+		$sql = "
+				SELECT werks AS plnt,
+					   sub_block_code AS block_code,
+					   tgl_mill AS \"Created On\",
+					   kg_produksi AS quantity,
+					   'KG' bun
+				  FROM tap_dw.tr_hv_production_daily
+				 WHERE tgl_mill BETWEEN CASE
+										   WHEN TO_CHAR (sysdate, 'dd') BETWEEN '01' AND '05' THEN TRUNC (ADD_MONTHS (sysdate, -1), 'MON')
+										   ELSE TRUNC (sysdate, 'mon')
+										END
+										AND CASE
+										   WHEN TO_CHAR (sysdate, 'dd') BETWEEN '01' AND '05' 
+										   THEN TRUNC (LAST_DAY (ADD_MONTHS (sysdate, -1)))
+										   ELSE TRUNC (sysdate)
+										END
+										/*TRUNC (ADD_MONTHS (sysdate, -1), 'MON') and TRUNC (LAST_DAY (ADD_MONTHS (sysdate, -1)))*/
+										";
+		$datax = DB::connection('irs')->select($sql);
+		// dd($datax);
+		if($datax)
+		{	
+			return response()->json( [
+							"message" => "sqvi",
+							"data" => $datax ] );
+		}
+		
 	}
 	
 	public function xcron()
@@ -116,7 +148,7 @@ class SqviController extends Controller
 	{	
 
         ini_set('memory_limit', '-1');
-        ini_set('max_execution_time', 300);
+        ini_set('max_execution_time', -1);
         $sql1 = "SELECT WERKS FROM TM_EST WHERE TO_CHAR(END_VALID, 'YYYYMMDD') = '99991231' AND WERKS LIKE '".$comp_ba."%'";
         $data_ba = DB::connection('dev_tap_dw')->select($sql1);
         if($data_ba)
