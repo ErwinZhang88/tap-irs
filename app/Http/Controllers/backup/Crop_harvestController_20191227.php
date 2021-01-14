@@ -12,7 +12,7 @@ use App\Crop_harvest; //MODEL
 use Carbon\Carbon;
 
 
-class Crop_harvestController extends Controller
+class BackupCrop_harvestController extends Controller
 {	
     public function index( $comp_ba )
 	{

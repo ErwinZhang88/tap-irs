@@ -9,10 +9,7 @@ use Illuminate\Http\Response;
 use App\Http\Controllers\GetTokenController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
-// use Illuminate\Support\Facades\Response;
-use Illuminate\Support\Collection;
 use URL;
-
 
 //use DB;
 use App\Crop_harvest; //MODEL
@@ -25,9 +22,15 @@ use PhpOffice\PhpSpreadsheet\Writer\Csv;
 
 class Crop_harvestController extends Controller
 {	
-    public function index( $comp_ba )
-	{
-		
+	
+	public function index($comp_ba)
+	{	
+		//$spreadsheet = new Spreadsheet();
+		//$sheet = $spreadsheet->getActiveSheet();
+		//$sheet->setCellValue('A1', 'Hello World !');
+        //$filepath = "/etc/csv_share/TEST_".date("Ymd_Gis").".csv";
+		//$writer = new \PhpOffice\PhpSpreadsheet\Writer\Csv($spreadsheet);
+		//$writer->save($filepath);
 	}
 	
 	public function cron($comp_ba)
@@ -80,8 +83,8 @@ class Crop_harvestController extends Controller
         //CONTENT DATA		
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 300);
-        $sql1 = "SELECT WERKS FROM tap_dw.TM_EST WHERE TO_CHAR(END_VALID, 'YYYYMMDD') = '99991231' AND WERKS LIKE '".$comp_ba."%'";
-        $data_ba = DB::connection('irs')->select($sql1);
+        $sql1 = "SELECT WERKS FROM TM_EST WHERE TO_CHAR(END_VALID, 'YYYYMMDD') = '99991231' AND WERKS LIKE '".$comp_ba."%'";
+        $data_ba = DB::connection('dev_tap_dw')->select($sql1);
         if($data_ba)
         {
             foreach( $data_ba as $c ){
@@ -218,18 +221,55 @@ class Crop_harvestController extends Controller
         }
 		
     }
-	
-	public function getCropharvest($comp_ba)
-	{	
-		ini_set('memory_limit', '-1');
-		ini_set('max_execution_time', 300);
-		$sql1 = "SELECT WERKS FROM tap_dw.TM_EST WHERE TO_CHAR(END_VALID, 'YYYYMMDD') = '99991231' AND WERKS LIKE '".$comp_ba."%'";
-		$data_ba = DB::connection('irs')->select($sql1);
-		if($data_ba)
-		{
-			foreach( $data_ba as $c ){
-				$ba = $c->werks;
-					$sql = "  
+    
+
+    public function json($comp_ba){ 
+        $param = $comp_ba;
+		$Master = new Master;
+        // $token = $req->bearerToken();
+        $controller = new GetTokenController;
+        $token =  $controller->readToken();
+        $valid =  $controller->readValid();
+
+        if($valid > date("Y-m-d H:i:s")){
+            try{
+                $RestAPI = $Master
+                            ->setEndpoint('getCropharvest/'.$param)
+                            ->setHeaders([
+                                'Authorization' => 'Bearer '.$token
+                            ])
+                            ->get();
+                if($RestAPI['http_status_code'] == 200){
+                    $results = array('message' => $RestAPI['message'],
+										'data' => $RestAPI['data']['results']);
+                    return $results;
+				}
+				else{
+                    return response()->json('Success', "Terjadi error get data Crop Harvest {$RestAPI['http_status_code']} ");
+                }
+            }
+			catch(\Exception $e)
+			{
+				return response()->json('Error', "Terjadi error get data Crop Harvest ".$e);
+            }
+        }
+        else{
+            return response()->json('Success', "Token Invalid!");
+        }	
+
+    }
+
+    public function getCropharvest($comp_ba){
+        ini_set('memory_limit', '-1');
+        // ini_set('max_execution_time', 300);
+        ini_set('max_execution_time', -1);
+        $sql1 = "SELECT WERKS FROM TM_EST WHERE TO_CHAR(END_VALID, 'YYYYMMDD') = '99991231' AND WERKS LIKE '".$comp_ba."%'";
+        $data_ba = DB::connection('dev_tap_dw')->select($sql1);
+        if($data_ba)
+        {
+            foreach( $data_ba as $c ){
+                $ba = $c->werks;
+                $sql = "  
                     SELECT bcc.bukrs company_code,
                          '''' || oph oil_palm_harvesting_number,
                          TO_CHAR (TO_DATE (bcc.budat, 'yyyymmdd'), 'mm/dd/yyyy') dt,
@@ -265,65 +305,33 @@ class Crop_harvestController extends Controller
                                                                     /*TRUNC (ADD_MONTHS (SYSDATE, -1), 'mon')
                                                                     and LAST_DAY (TRUNC (ADD_MONTHS (SYSDATE,-1)))*/
                         AND prof.plant_code = '".$ba."'";
-				$datax = collect(DB::connection('irs')->select($sql));
-                if ( count($datax) > 0) {
+                
+                $datax = DB::connection('irs')->select($sql);
                     $response['http_status_code'] = 200;
-                    $response['message'] = "CROP HARVEST";
+                    $response['message'] = "Crop Harvest";
                     $response['data']['results'] = $datax;
-				}
-				else{
-					
-					$response = array(
-						"http_status_code" => 404,
-						"message" => "Not found",
-						"data" => array(
-							"results" => array(),
-							"error_message" => array()
-						)
-					);
+                    //return response()->json( $response );
 
-				}
-				
+                if ( $datax != '' ) {
+                    $response['http_status_code'] = 200;
+                    $response['message'] = "Crop Harvest";
+                    $response['data']['results'] = $datax;
+                }else{
+                    $response = array(
+                        "http_status_code" => 404,
+                        "message" => "Not found",
+                        "data" => array(
+                            "results" => array(),
+                            "error_message" => array()
+                        )
+                    );
+                }	
+                
                 return response()->json( $response );
-			}
-				
-		}
-	}
-	
-	public function json($comp_ba){
-                  
-        $param = $comp_ba;
-		$Master = new Master;
-        // $token = $req->bearerToken();
-        $controller = new GetTokenController;
-        $token =  $controller->readToken();
-        $valid =  $controller->readValid();
-		if($valid > date("Y-m-d H:i:s")){
-			try{
-				$RestAPI = $Master
-							->setEndpoint('getCropharvest/'.$param)
-							->setHeaders([
-								'Authorization' => 'Bearer '.$token
-							])
-							->get();
-				if($RestAPI['http_status_code'] == 200){
-						$results = array('message' => $RestAPI['message'],
-										'data' => $RestAPI['data']['results']);
-						return $results;
-				}else{
-					return response()->json('Success', "Terjadi error get data CROP HARVEST ");
-				}
-			}
-			catch(\Exception $e)
-			{
-				return response()->json('Error', "Terjadi error get data CROP HARVEST ".$e);
             }
         }
-        else{
-            return response()->json('Success', "Token Invalid!");
-        }	
-
     }
 	
 }
+
 ?>

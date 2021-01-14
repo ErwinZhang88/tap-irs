@@ -5,17 +5,14 @@ namespace App\Http\Controllers;
 require '/var/www/html/tap-irs/vendor/autoload.php';
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Response;
 use App\Http\Controllers\GetTokenController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
-// use Illuminate\Support\Facades\Response;
-use Illuminate\Support\Collection;
 use URL;
 
-
 //use DB;
-use App\Crop_harvest; //MODEL
+use App\VRA; //MODEL
 use Carbon\Carbon;
 use App\Providers\Master;
 
@@ -23,12 +20,8 @@ use App\Providers\Master;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Csv;
 
-class Crop_harvestController extends Controller
+class VRAController extends Controller
 {	
-    public function index( $comp_ba )
-	{
-		
-	}
 	
 	public function cron($comp_ba)
 	{	
@@ -80,8 +73,8 @@ class Crop_harvestController extends Controller
         //CONTENT DATA		
         ini_set('memory_limit', '-1');
         ini_set('max_execution_time', 300);
-        $sql1 = "SELECT WERKS FROM tap_dw.TM_EST WHERE TO_CHAR(END_VALID, 'YYYYMMDD') = '99991231' AND WERKS LIKE '".$comp_ba."%'";
-        $data_ba = DB::connection('irs')->select($sql1);
+        $sql1 = "SELECT WERKS FROM TM_EST WHERE TO_CHAR(END_VALID, 'YYYYMMDD') = '99991231' AND WERKS LIKE '".$comp_ba."%'";
+        $data_ba = DB::connection('dev_tap_dw')->select($sql1);
         if($data_ba)
         {
             foreach( $data_ba as $c ){
@@ -218,105 +211,36 @@ class Crop_harvestController extends Controller
         }
 		
     }
-	
-	public function getCropharvest($comp_ba)
-	{	
-		ini_set('memory_limit', '-1');
-		ini_set('max_execution_time', 300);
-		$sql1 = "SELECT WERKS FROM tap_dw.TM_EST WHERE TO_CHAR(END_VALID, 'YYYYMMDD') = '99991231' AND WERKS LIKE '".$comp_ba."%'";
-		$data_ba = DB::connection('irs')->select($sql1);
-		if($data_ba)
-		{
-			foreach( $data_ba as $c ){
-				$ba = $c->werks;
-					$sql = "  
-                    SELECT bcc.bukrs company_code,
-                         '''' || oph oil_palm_harvesting_number,
-                         TO_CHAR (TO_DATE (bcc.budat, 'yyyymmdd'), 'mm/dd/yyyy') dt,
-                         empnr employee_code,
-                         bcc.estnr estate,
-                         bcc.divnr afdeling,
-                         bcc.block block_code,
-                         blk.block_name old_block,
-                         bcc.werks plant,
-                         bunch_total total_bunch,
-                         zbrondolan brondolan_quantity,
-                         bcc.paire nik_gandeng
-                    FROM staging.zpay_bcc_sap@stg_link bcc
-                        LEFT JOIN tap_dw.tm_block blk
-                            ON     bcc.werks = blk.werks
-                            AND bcc.divnr = blk.afd_code
-                            AND bcc.block = blk.block_code
-                            AND TRUNC (TO_DATE (bcc.budat, 'yyyymmdd')) BETWEEN blk.start_valid AND end_valid
-                        LEFT JOIN staging.zpay_profile@stg_link prof
-                            ON prof.prof_name = bcc.prfnr
-                WHERE TRUNC (TO_DATE (bcc.budat, 'yyyymmdd')) BETWEEN CASE
-                                                                        WHEN TO_CHAR (SYSDATE, 'dd') BETWEEN '01' AND '05'
-                                                                        THEN
-                                                                            TRUNC (ADD_MONTHS (SYSDATE, -1), 'mon')
-                                                                        ELSE
-                                                                            TRUNC (SYSDATE, 'mon')
-                                                                    END
-                                                                    AND  CASE                                                                      WHEN TO_CHAR (SYSDATE, 'dd') BETWEEN '01' AND '05'
-                                                                    THEN LAST_DAY (TRUNC (ADD_MONTHS (SYSDATE,-1)))
-                                                                        ELSE
-                                                                        sysdate
-                                                                    END
-                                                                    /*TRUNC (ADD_MONTHS (SYSDATE, -1), 'mon')
-                                                                    and LAST_DAY (TRUNC (ADD_MONTHS (SYSDATE,-1)))*/
-                        AND prof.plant_code = '".$ba."'";
-				$datax = collect(DB::connection('irs')->select($sql));
-                if ( count($datax) > 0) {
-                    $response['http_status_code'] = 200;
-                    $response['message'] = "CROP HARVEST";
-                    $response['data']['results'] = $datax;
-				}
-				else{
-					
-					$response = array(
-						"http_status_code" => 404,
-						"message" => "Not found",
-						"data" => array(
-							"results" => array(),
-							"error_message" => array()
-						)
-					);
+    
 
-				}
-				
-                return response()->json( $response );
-			}
-				
-		}
-	}
-	
-	public function json($comp_ba){
-                  
+    public function json($comp_ba){ 
         $param = $comp_ba;
 		$Master = new Master;
         // $token = $req->bearerToken();
         $controller = new GetTokenController;
         $token =  $controller->readToken();
         $valid =  $controller->readValid();
-		if($valid > date("Y-m-d H:i:s")){
-			try{
-				$RestAPI = $Master
-							->setEndpoint('getCropharvest/'.$param)
-							->setHeaders([
-								'Authorization' => 'Bearer '.$token
-							])
-							->get();
-				if($RestAPI['http_status_code'] == 200){
-						$results = array('message' => $RestAPI['message'],
+
+        if($valid > date("Y-m-d H:i:s")){
+            try{
+                $RestAPI = $Master
+                            ->setEndpoint('getVRA/'.$param)
+                            ->setHeaders([
+                                'Authorization' => 'Bearer '.$token
+                            ])
+                            ->get();
+                if($RestAPI['http_status_code'] == 200){
+                    $results = array('message' => $RestAPI['message'],
 										'data' => $RestAPI['data']['results']);
-						return $results;
-				}else{
-					return response()->json('Success', "Terjadi error get data CROP HARVEST ");
+                    return $results;
 				}
-			}
+				else{
+                    return response()->json('Success', "Terjadi error get data VRA {$RestAPI['http_status_code']} ");
+                }
+            }
 			catch(\Exception $e)
 			{
-				return response()->json('Error', "Terjadi error get data CROP HARVEST ".$e);
+				return response()->json('Error', "Terjadi error get data VRA ".$e);
             }
         }
         else{
@@ -324,6 +248,65 @@ class Crop_harvestController extends Controller
         }	
 
     }
+
+    public function getVRA($comp_ba){
+        ini_set('memory_limit', '-1');
+        // ini_set('max_execution_time', 300);
+        ini_set('max_execution_time', -1);
+        $sql1 = "SELECT WERKS FROM TM_EST WHERE TO_CHAR(END_VALID, 'YYYYMMDD') = '99991231' AND WERKS LIKE '".$comp_ba."%'";
+        $data_ba = DB::connection('dev_tap_dw')->select($sql1);
+        if($data_ba)
+        {
+            foreach( $data_ba as $c ){
+                $ba = $c->werks;
+                $sql = "  
+                    SELECT aufnr vehicle_license_number,
+						   comp_code cocd,
+						   est_code estate_code,
+						   start_mileage,
+						   end_mileage,
+						   mileage_uom,
+						   posting_date,
+						   actvt_id,
+						   kunnr customer,
+						   anln1,
+						   block_code,
+						   mileage vehicle_mileage,
+						   wrealize,
+						   wrealize_uom
+					  FROM tap_dw.zvra_mv
+					 WHERE posting_date BETWEEN CASE WHEN TO_CHAR (SYSDATE, 'dd') BETWEEN '01' AND '05' THEN TRUNC (ADD_MONTHS (SYSDATE, -1), 'mon') ELSE TRUNC (SYSDATE, 'mon') END
+											AND  CASE WHEN TO_CHAR (SYSDATE, 'dd') BETWEEN '01' AND '05' THEN TRUNC (LAST_DAY (ADD_MONTHS (SYSDATE, -1))) ELSE SYSDATE END
+                                                                    /*TRUNC (ADD_MONTHS (SYSDATE, -1), 'mon')
+                                                                    and LAST_DAY (TRUNC (ADD_MONTHS (SYSDATE,-1)))*/
+                        AND comp_code||est_code = '".$ba."'";
+                
+                $datax = DB::connection('irs')->select($sql);
+                    $response['http_status_code'] = 200;
+                    $response['message'] = "VRA";
+                    $response['data']['results'] = $datax;
+                    return response()->json( $response );
+
+                if ( $datax != '' ) {
+                    $response['http_status_code'] = 200;
+                    $response['message'] = "VRA";
+                    $response['data']['results'] = $datax;
+                }else{
+                    $response = array(
+                        "http_status_code" => 404,
+                        "message" => "Not found",
+                        "data" => array(
+                            "results" => array(),
+                            "error_message" => array()
+                        )
+                    );
+                }	
+                
+                return response()->json( $response );
+            }
+        }
+    }
 	
 }
+
 ?>

@@ -2,24 +2,24 @@
 
 namespace App\Http\Controllers;
 
-ini_set('memory_limit', 0);
-ini_set('max_execution_time', 0);
-
 require '/var/www/html/tap-irs/vendor/autoload.php';
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\GetTokenController;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Input;
+use URL;
 
 //use DB;
 use App\Sqvi; //MODEL
 use Carbon\Carbon;
+use App\Providers\Master;
 
 
 class SqviController extends Controller
 {	
-    public function json()
+    public function getSqvi()
 	{                  
 		ini_set('memory_limit', '-1');
 		ini_set('max_execution_time', -1);
@@ -44,14 +44,70 @@ class SqviController extends Controller
 										";
 		$datax = DB::connection('irs')->select($sql);
 		// dd($datax);
-		if($datax)
-		{	
-			return response()->json( [
-							"message" => "sqvi",
-							"data" => $datax ] );
+		// if($datax)
+		// {	
+		// 	return response()->json( [
+		// 					"message" => "sqvi",
+		// 					"data" => $datax ] );
+		// }
+		if ( count($datax) > 0) {
+			$response['http_status_code'] = 200;
+			$response['message'] = "SQVI";
+			$response['data']['results'] = $datax;
+		}else{
+			$response = array(
+				"http_status_code" => 404,
+				"message" => "Not found",
+				"data" => array(
+					"results" => array(),
+					"error_message" => array()
+				)
+			);
+			
+	
 		}
+
+		return response()->json( $response );
 		
-	}
+    }
+    
+	public function json()
+	{
+                  
+		$Master = new Master;
+        // $token = $req->bearerToken();
+        $controller = new GetTokenController;
+        $token =  $controller->readToken();
+        $valid =  $controller->readValid();
+
+        if($valid > date("Y-m-d H:i:s")){
+			try{
+				$RestAPI = $Master
+							->setEndpoint('getSqvi')
+							->setHeaders([
+								'Authorization' => 'Bearer '.$token
+							])
+							->get();
+				if($RestAPI['http_status_code'] == 200){
+					$results = array('message' => $RestAPI['message'],
+									'data' => $RestAPI['data']['results']);
+					return $results;
+				}
+				else{
+					return response()->json('Success', "Terjadi error get data SQVI {$RestAPI['http_status_code']} ");
+				}
+			}
+			catch(\Exception $e)
+			{
+				return response()->json('Error', "Terjadi error get SQVI ".$e);
+			}
+        }
+        else{
+            return response()->json('Success', "Token Invalid!");
+        }	
+
+    }
+
 	
 	public function xcron()
 	{	
@@ -100,6 +156,7 @@ class SqviController extends Controller
 		$writer = new \PhpOffice\PhpSpreadsheet\Writer\Csv($spreadsheet);
 		$writer->save($pathfile); 
 	}
+
 	public function cron()
 	{	
 		$sql = "
@@ -144,6 +201,7 @@ class SqviController extends Controller
 
 		fclose($fp);
 	}
+	
 	public function xxcron($comp_ba)
 	{	
 

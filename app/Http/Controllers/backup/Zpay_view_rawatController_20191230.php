@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Input;
 use App\Zpay_view_rawat; //MODEL
 use Carbon\Carbon;
 
-class Zpay_view_rawatController extends Controller
+class BackupZpay_view_rawatController extends Controller
 {	
     public function index( $comp_ba )
 	{

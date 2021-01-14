@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Input;
 use App\Sqvi; //MODEL
 use Carbon\Carbon;
 
-class SqviController extends Controller
+class BackupSqviController extends Controller
 {	
     public function index()
 	{

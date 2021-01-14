@@ -5,13 +5,18 @@ namespace App\Http\Controllers;
 require '/var/www/html/tap-irs/vendor/autoload.php';
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use App\Http\Controllers\GetTokenController;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Collection;
+use URL;
 
 //use DB;
 use App\Employee; //MODEL
 use Carbon\Carbon;
+
+use App\Providers\Master;
 
 //use Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -19,9 +24,45 @@ use PhpOffice\PhpSpreadsheet\Writer\Csv;
 
 class EmployeeController extends Controller
 {	
+    public function json($comp_ba){
+                  
+        $param = $comp_ba;
+		$Master = new Master;
+        // $token = $req->bearerToken();
+        $controller = new GetTokenController;
+        $token =  $controller->readToken();
+        $valid =  $controller->readValid();
+
+        if($valid > date("Y-m-d H:i:s")){
+            try{
+                $RestAPI = $Master
+                            ->setEndpoint('getEmployee/'.$param)
+                            ->setHeaders([
+                                'Authorization' => 'Bearer '.$token
+                            ])
+                            ->get();
+                if($RestAPI['http_status_code'] == 200){
+                    $results = array('message' => $RestAPI['message'],
+                                    'data' => $RestAPI['data']['results']);
+                    return $results;
+                }
+                else{
+                    return response()->json('Success', "Terjadi error get data employee {$RestAPI['http_status_code']} ");
+                }
+            }
+			catch(\Exception $e)
+			{
+				return response()->json('Error', "Terjadi error get data employee ".$e);
+            }
+        }
+        else{
+            return response()->json('Success', "Token Invalid!");
+        }	
+
+    }
 	
-	public function json( $comp_ba )
-	{                  
+	public function getEmployee( $comp_ba )
+	{   
 		ini_set('memory_limit', '-1');
 		ini_set('max_execution_time', -1);
 		$sql1 = "SELECT WERKS FROM tap_dw.TM_EST WHERE TO_CHAR(END_VALID, 'YYYYMMDD') = '99991231' AND WERKS LIKE '".$comp_ba."%'";
@@ -41,21 +82,39 @@ class EmployeeController extends Controller
 							   TO_CHAR (hd.entry_date, 'mm/dd/yyyy') \"Tgl Masuk\",
 							   TO_CHAR (hd.res_date, 'mm/dd/yyyy') \"Tgl Resign\",
 							   TO_CHAR (hd.start_valid, 'mm/dd/yyyy') \"Start Valid\",
-							   TO_CHAR (hd.end_valid, 'mm/dd/yyyy') \"End Valid\"
+							   TO_CHAR (hd.end_valid, 'mm/dd/yyyy') \"End Valid\",
+							   religion agama, TO_CHAR (hd.dob , 'mm/dd/yyyy') dob, hd.identification
 						  FROM tap_dw.tm_employee_sap hd LEFT JOIN (  SELECT nik, MAX (end_valid) max_end_valid
 																 FROM tap_dw.tm_employee_sap
 															 GROUP BY nik) maks
 								  ON hd.nik = maks.nik
 						 WHERE hd.end_valid = maks.max_end_valid 
 						 AND hd.werks = '".$ba."'";
-				$datax = DB::connection('irs')->select($sql);
+                $datax = collect(DB::connection('irs')->select($sql));
+
+                if ( count($datax) > 0) {
+                    $response['http_status_code'] = 200;
+                    $response['message'] = "employee";
+                    $response['data']['results'] = $datax;
+                }else{
+                    $response = array(
+                        "http_status_code" => 404,
+                        "message" => "Not found",
+                        "data" => array(
+                            "results" => array(),
+                            "error_message" => array()
+                        )
+                    );
+                }	
+        
+                return response()->json( $response );
 				// dd($datax);
-				if($datax)
-				{	
-					return response()->json( [
-									"message" => "employee",
-									"data" => $datax ] );
-				}
+				// if($datax)
+				// {	
+				// 	return response()->json( [
+				// 					"message" => "employee",
+				// 					"data" => $datax ] );
+                // }
 			}
 		}
 	}
@@ -95,7 +154,7 @@ class EmployeeController extends Controller
 															 GROUP BY nik) maks
 								  ON hd.nik = maks.nik WHERE  hd.end_valid = maks.max_end_valid and hd.werks = '".$ba."'";
                 
-                $datax = DB::connection('dev_tap_dw')->select($sql);
+                $datax = DB::connection('irs')->select($sql);
                 
                 if($datax)
                 {   

@@ -1,0 +1,12 @@
+version: '3.7'
+services:
+  irs-app:
+    build:
+      context: .
+      dockerfile: .docker/Dockerfile
+    image: 'irs-app'
+    ports:
+      - 0.0.0.0:8081:80
+    volumes:
+      - ./:/var/www/html
+

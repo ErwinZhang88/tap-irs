@@ -38,7 +38,7 @@ return [
 		'mobile_ins' => [
 			'driver'   => 'oracle',
 			'tns'      =>  '',
-			'host'     => '10.20.1.111',
+			'host'     => 'dboracledev.tap-agri.com',
 			'port'     => '1521',
 			'database' => 'tapapps',
             'username' => 'mobile_inspection',
@@ -51,7 +51,7 @@ return [
 		'tap_flow' => [
 			'driver'   => 'oracle',
 			'tns'      =>  '',
-			'host'     => '10.20.1.111',
+			'host'     => 'dboracledev.tap-agri.com',
 			'port'     => '1521',
 			'database' => 'tapapps',
 			'username' => 'tap_flow',
@@ -64,7 +64,7 @@ return [
 		'prod_tapapps_mobile_estate' => [
 			'driver'   => 'oracle',
 			'tns'      =>  '',
-			'host'     => '10.20.1.111',
+			'host'     => 'dboracledev.tap-agri.com',
 			'port'     => '1521',
 			'database' => 'tapapps',
 			'username' => 'mobile_estate',
@@ -75,7 +75,7 @@ return [
 		'prod_tapapps_mobile_inspection' => [
 			'driver'   => 'oracle',
 			'tns'      =>  '',
-			'host'     => '10.20.1.111',
+			'host'     => 'dboracledev.tap-agri.com',
 			'port'     => '1521',
 			'database' => 'tapapps',
 			'username' => 'mobile_inspection',
@@ -101,8 +101,6 @@ return [
 			'host'     => 'dworacle.tap-agri.com',
 			'port'     => '1521',
 			'database' => 'tapdw',
-			// 'username' => 'outsource1',
-			// 'password' => 'outsource1',
 			'username' => 'qa_user',
 			'password' => 'qa_user',
 			'charset'  => 'AL32UTF8',
@@ -127,7 +125,7 @@ return [
 		'qa_tapapps_mobile_inspection' => [
 			'driver'   => 'oracle',
 			'tns'      =>  '',
-			'host'     => '10.20.1.111',
+			'host'     => 'dboracledev.tap-agri.com',
 			'port'     => '1521',
 			'database' => 'tapapps',
 			'username' => 'mobile_inspection',
@@ -138,7 +136,7 @@ return [
 		'qa_tap_dw' => [
 			'driver'   => 'oracle',
 			'tns'      =>  '',
-			'host'     => '10.20.1.103',
+			'host'     => 'devdw.tap-agri.com',
 			'port'     => '1521',
 			'database' => 'tapdw',
 			'username' => 'tap_dw',
@@ -149,7 +147,7 @@ return [
 		'qa_tapapps_mobile_estate' => [
 			'driver'   => 'oracle',
 			'tns'      =>  '',
-			'host'     => '10.20.1.111',
+			'host'     => 'dboracledev.tap-agri.com',
 			'port'     => '1521',
 			'database' => 'tapapps',
 			'username' => 'mobile_estate',
@@ -162,7 +160,7 @@ return [
 		'dev_tapapps_mobile_inspection' => [
 			'driver'   => 'oracle',
 			'tns'      =>  '',
-			'host'     => '10.20.1.111',
+			'host'     => 'dboracledev.tap-agri.com',
 			'port'     => '1521',
 			'database' => 'tapapps',
 			'username' => 'mobile_inspection',
@@ -173,7 +171,7 @@ return [
 		'dev_tap_dw' => [
 			'driver'   => 'oracle',
 			'tns'      =>  '',
-			'host'     => '10.20.1.103',
+			'host'     => 'devdw.tap-agri.com',
 			'port'     => '1521',
 			'database' => 'tapdw',
 			'username' => 'tap_dw',
@@ -184,7 +182,7 @@ return [
 		'dev_tapapps_mobile_estate' => [
 			'driver'   => 'oracle',
 			'tns'      =>  '',
-			'host'     => '10.20.1.111',
+			'host'     => 'dboracledev.tap-agri.com',
 			'port'     => '1521',
 			'database' => 'tapapps',
 			'username' => 'mobile_estate',
